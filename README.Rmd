@@ -1,6 +1,6 @@
 ---
 title: "README"
-format: html
+output: github_document
 ---
 
 ```{r}

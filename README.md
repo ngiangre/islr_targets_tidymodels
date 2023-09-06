@@ -1,2 +1,8 @@
-# islr_targets_tidymodels
-This project uses {targets} to construct a workflow for using {tidymodels} to generate ML models referenced in the Introduction to Statistical Learning (ISLR) text
+README
+================
+
+``` r
+targets::tar_visnetwork()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
