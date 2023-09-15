@@ -3,6 +3,67 @@ title: "README"
 output: github_document
 ---
 
+## Background
+
+This project is for implementing the statistical and machine learning techniques from reading the 2nd edition of Introduction to Statistical Learning. The implementation will use {targets} and the. {tidymodels} collection of packages will be the main functionality used.
+
+
 ```{r}
-targets::tar_visnetwork()
+library(tidymodels)
+library(discrim)
+library(MASS)
+
+all_data <- modeldata::ad_data |> mutate(male = factor(male,levels=c(0,1)))
+rsplits <- rsample::initial_split(all_data)
+train_data <- training(rsplits)
+val_data <- testing(rsplits)
+
+outcome_vars <- "Class"
+predictor_vars <- setdiff(colnames(train_data),outcome_vars)
+all_vars <- c(outcome_vars,predictor_vars)
+var_roles <- c(
+    rep("outcome",length(outcome_vars)),
+    rep("predictor",length(predictor_vars))
+)
+
+base_rec <- 
+    recipe(train_data,vars=all_vars,roles=var_roles) |> 
+    step_dummy(all_nominal_predictors())
+norm_rec <- 
+    recipe(train_data,vars=all_vars,roles=var_roles) |> 
+    step_normalize(all_numeric_predictors()) |> 
+    step_dummy(all_nominal_predictors())
+
+specs <- 
+  list(
+    "Logit" = parsnip::logistic_reg(penalty = tune(),mixture = tune()) |> parsnip::set_engine("glmnet"),
+    "LDA" = parsnip::discrim_linear(regularization_method = "diagonal",penalty = 1) |> set_engine("MASS"),
+    "SVM" = svm_linear(cost = tune(), margin = tune()) %>% set_engine("kernlab") %>% set_mode("classification")
+  )
+
+folds <- vfold_cv(train_data,v = 10,repeats = 10)
+
+set.seed(8241)
+doParallel::registerDoParallel()
+wf_set <- workflow_set(
+    preproc = list(
+        base = base_rec,
+        normalized = norm_rec
+        ),
+    models = specs
+)
+res <- 
+    workflow_map(
+    wf_set,
+    fn = 'tune_bayes',
+    resamples = folds,
+    verbose = TRUE,
+    metrics = metric_set(accuracy, sensitivity, specificity)
+)
+
+```
+
+
+```{r}
+autoplot(res)
 ```
