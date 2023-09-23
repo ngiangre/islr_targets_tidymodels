@@ -16,9 +16,9 @@ library(tidymodels)
 
     ## ✔ broom        1.0.5     ✔ recipes      1.0.8
     ## ✔ dials        1.2.0     ✔ rsample      1.2.0
-    ## ✔ dplyr        1.1.2     ✔ tibble       3.2.1
+    ## ✔ dplyr        1.1.3     ✔ tibble       3.2.1
     ## ✔ ggplot2      3.4.3     ✔ tidyr        1.3.0
-    ## ✔ infer        1.0.4     ✔ tune         1.1.2
+    ## ✔ infer        1.0.5     ✔ tune         1.1.2
     ## ✔ modeldata    1.2.0     ✔ workflows    1.1.3
     ## ✔ parsnip      1.1.1     ✔ workflowsets 1.0.1
     ## ✔ purrr        1.0.2     ✔ yardstick    1.2.0
@@ -28,7 +28,7 @@ library(tidymodels)
     ## ✖ dplyr::filter()  masks stats::filter()
     ## ✖ dplyr::lag()     masks stats::lag()
     ## ✖ recipes::step()  masks stats::step()
-    ## • Search for functions across packages at https://www.tidymodels.org/find/
+    ## • Dig deeper into tidy modeling with R at https://www.tmwr.org
 
 ``` r
 library(discrim)
@@ -104,31 +104,31 @@ res <-
 
     ## i 1 of 6 tuning:     base_Logit
 
-    ## ✔ 1 of 6 tuning:     base_Logit (1m 16.8s)
+    ## ✔ 1 of 6 tuning:     base_Logit (1m 11.6s)
 
     ## i    No tuning parameters. `fit_resamples()` will be attempted
 
     ## i 2 of 6 resampling: base_LDA
 
-    ## ✔ 2 of 6 resampling: base_LDA (4.1s)
+    ## ✔ 2 of 6 resampling: base_LDA (4s)
 
     ## i 3 of 6 tuning:     base_SVM
 
-    ## ✔ 3 of 6 tuning:     base_SVM (1m 27.6s)
+    ## ✔ 3 of 6 tuning:     base_SVM (1m 29.3s)
 
     ## i 4 of 6 tuning:     normalized_Logit
 
-    ## ✔ 4 of 6 tuning:     normalized_Logit (1m 24.7s)
+    ## ✔ 4 of 6 tuning:     normalized_Logit (1m 24.3s)
 
     ## i    No tuning parameters. `fit_resamples()` will be attempted
 
     ## i 5 of 6 resampling: normalized_LDA
 
-    ## ✔ 5 of 6 resampling: normalized_LDA (5.1s)
+    ## ✔ 5 of 6 resampling: normalized_LDA (4.9s)
 
     ## i 6 of 6 tuning:     normalized_SVM
 
-    ## ✔ 6 of 6 tuning:     normalized_SVM (1m 42.4s)
+    ## ✔ 6 of 6 tuning:     normalized_SVM (1m 39.4s)
 
 ``` r
 autoplot(res)
