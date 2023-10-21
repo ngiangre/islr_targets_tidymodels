@@ -1,11 +1,14 @@
 ---
 title: "README"
-output: github_document
+format: gfm
+execute:
+    warning: false
+    message: false
 ---
 
 ## Background
 
-This project is for implementing the statistical and machine learning techniques from reading the 2nd edition of Introduction to Statistical Learning. I want to grow my understanding and usage of prediction/inference techniques. I also want to use the language `R` since there are reliable and versatile APIs from the {tidymodels} collection of packages. Also, the visualization of the outputs will be a lot better and easier if I stay within the `R` environment and use the {ggplot2} package. 
+This project is intended for implementing statistical and machine learning techniques in the 2nd edition of Introduction to Statistical Learning. I want to grow my understanding and usage of prediction/inference techniques while using the versatile APIs from the {tidymodels} collection of `R` packages. Also, the visualization of the outputs will be a lot better and easier if I stay within the `R` environment and use the {ggplot2} package. 
 
 I will eventually use {targets} to orchestrate the modeling pipeline. There are many steps involved when using these techniques and as the number of steps grow it will be hard to keep track of the analysis components. To enforce reproducibility and keep track of the analysis pipeline, I will eventually use {targets} to orchestrate the pipeline as it grows. There are a few main components that will be part of the pipeline:
 
@@ -16,7 +19,7 @@ I will eventually use {targets} to orchestrate the modeling pipeline. There are 
 - Model Evaluation
 - Model Testing
 
-First, I will be selecting different datasets for both applying classification and regression techniques. In both cases, I will choose a response variable but the predictors will be automatically selected from the other variables in the dataset. The datasets will be high dimensional but there will be various different datasets. Next, I will produce different plots and summaries to have an understanding of the relationship between the response and potential predictors. Next, I will perform feature selection using the LASSO technique to identify predictors related to the response. I will utilize the bootstrap to identify the predictors with a non-zero relationship to the response. Using these predictors, I will then train a pre-defined set of prediction models. I will utilize cross validation and different hyperparameter tuning techniques to evaluate the best performing model that maximizes the tradeoff between sensitivity and specificity (the roc_auc metric). Then using the maximal model, I will retrain te model on the entire training dataset to derive the predictor importances to the response. Lastly I will predict the held out test data and compare the different model performances. 
+First, I will be selecting different datasets for both applying classification and regression techniques. In both cases, I will choose a response variable but the predictors will be automatically selected from the other variables in the dataset. The datasets will be high dimensional but there will be various different datasets. Next, I will produce different plots and summaries to have an understanding of the relationship between the response and potential predictors. Next, I will perform feature selection using the LASSO technique to identify predictors related to the response. I will utilize the bootstrap to identify the predictors with a non-zero relationship to the response. Using these predictors, I will then train a pre-defined set of prediction models. I will utilize cross validation and different hyperparameter tuning techniques to evaluate the best performing model that maximizes the tradeoff between sensitivity and specificity (the roc_auc metric). Then using the maximal model, I will retrain the model on the entire training dataset to infer the predictor importances to the response. Lastly I will predict the held out test data and compare the different model performances. 
 
 For ensuring correct parameterization and using the correct functions, I will also eventually use object oriented programming. For a given dataset, there are a few attributes such as
 
@@ -130,8 +133,8 @@ prediction_folds <- vfold_cv(train_data,v = 10,repeats = 10)
 set.seed(8241)
 wf_set <- workflow_set(
     preproc = list(
-        base = base_rec,
-        normalized = norm_rec
+        base = base_recipe,
+        normalized = norm_recipe
         ),
     models = specs
 )

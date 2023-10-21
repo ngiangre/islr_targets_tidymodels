@@ -513,20 +513,6 @@
       ],
       "Hash": "39ec49c8b8d3c0502ad7aba699ec798b"
     },
-    "doParallel": {
-      "Package": "doParallel",
-      "Version": "1.0.17",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "foreach",
-        "iterators",
-        "parallel",
-        "utils"
-      ],
-      "Hash": "451e5edf411987991ab6a5410c45011f"
-    },
     "dplyr": {
       "Package": "dplyr",
       "Version": "1.1.3",
