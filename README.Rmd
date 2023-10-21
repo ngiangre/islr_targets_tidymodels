@@ -16,7 +16,20 @@ I will eventually use {targets} to orchestrate the modeling pipeline. There are 
 - Model Evaluation
 - Model Testing
 
-First, I will be selecting different datasets for both applying classification and regression techniques. In both cases, I will choose a response variable but the predictors will be automatically selected from the other variables in the dataset. Next, I will produce different plots and summaries to have an understanding of the relationship between the response and potential predictors. Next, I will perform feature selection using the LASSO technique to identify predictors related to the response. I will utilize the bootstrap to identify the predictors with a non-zero relationship to the response. Using these predictors, I will then train a pre-defined set of models. I will utilize cross validation and different hyperparameter tuning techniques to evaluate the best performing model that maximizes the tradeoff between sensitivity and specificity (the roc_auc metric). Then using the maximal model, I will retrain te model on the entire training dataset to derive the predictor importances to the response. Lastly I will predict the held out test data and compare the different model performances. 
+First, I will be selecting different datasets for both applying classification and regression techniques. In both cases, I will choose a response variable but the predictors will be automatically selected from the other variables in the dataset. The datasets will be high dimensional but there will be various different datasets. Next, I will produce different plots and summaries to have an understanding of the relationship between the response and potential predictors. Next, I will perform feature selection using the LASSO technique to identify predictors related to the response. I will utilize the bootstrap to identify the predictors with a non-zero relationship to the response. Using these predictors, I will then train a pre-defined set of prediction models. I will utilize cross validation and different hyperparameter tuning techniques to evaluate the best performing model that maximizes the tradeoff between sensitivity and specificity (the roc_auc metric). Then using the maximal model, I will retrain te model on the entire training dataset to derive the predictor importances to the response. Lastly I will predict the held out test data and compare the different model performances. 
+
+For ensuring correct parameterization and using the correct functions, I will also eventually use object oriented programming. For a given dataset, there are a few attributes such as
+
+- Data
+- Data Predictors
+- Data Response
+- Data Training and Testing Datasets
+- LASSO model tuning results
+- LASSO selected predictors
+- Prediction model tuning results
+- Prediction model prediction results
+
+As a beginning step, I will try to execute this pipeline for one example.
 
 ```{r load_libraries}
 library(tidymodels)
@@ -24,13 +37,14 @@ library(discrim)
 library(MASS)
 ```
 
-```{r run_example_workflow}
-
+```{r split_data}
 all_data <- modeldata::ad_data |> mutate(male = factor(male,levels=c(0,1)))
 rsplits <- rsample::initial_split(all_data)
 train_data <- training(rsplits)
 val_data <- testing(rsplits)
+```
 
+```{r specify_lasso_recipe}
 outcome_vars <- "Class"
 predictor_vars <- setdiff(colnames(train_data),outcome_vars)
 all_vars <- c(outcome_vars,predictor_vars)
@@ -39,10 +53,67 @@ var_roles <- c(
     rep("predictor",length(predictor_vars))
 )
 
-base_rec <- 
+lasso_recipe <- 
     recipe(train_data,vars=all_vars,roles=var_roles) |> 
     step_dummy(all_nominal_predictors())
-norm_rec <- 
+lasso_model <- parsnip::logistic_reg(mode = "classification",engine = "glmnet",mixture = 1,penalty = 1)
+lasso_wf <- 
+    workflow() |> 
+            add_model(lasso_model) |> 
+            add_recipe(lasso_recipe)
+lasso_cvs <- vfold_cv(train_data,v = 10,repeats = 10)
+lasso_resamples <- vfold_cv(train_data,v = 10,repeats = 10)
+
+```
+
+```{r feature_selection}
+lasso_model <- parsnip::logistic_reg(mode = "classification",engine = "glmnet",mixture = 1,penalty = 1)
+lasso_wf <- 
+    workflow() |> 
+            add_model(lasso_model) |> 
+            add_recipe(lasso_recipe)
+boot_models <- 
+    bootstraps(train_data,1000) |> 
+    mutate(model = purrr::map(splits,~{
+        lasso_wf |> 
+            fit(data=analysis(.x)) |> 
+            extract_fit_engine()
+    }),
+    coef_info = map(model, tidy))
+
+boot_coefs <- 
+    boot_models |> 
+    unnest(coef_info)
+
+percentile_intervals <- int_pctl(boot_models, coef_info)
+selected_predictors <- setdiff(
+                   percentile_intervals |> filter((.lower>0 & .upper>0) | (.lower<0 & .upper<0)) |> pull(term),
+                   "Intercept"
+               )
+ggplot(boot_coefs |> 
+           filter(term %in% (
+               selected_predictors
+           )), aes(estimate)) +
+  geom_histogram(bins = 30) +
+  facet_wrap( ~ term, scales = "free") +
+  geom_vline(aes(xintercept = .lower), data = percentile_intervals, col = "blue") +
+  geom_vline(aes(xintercept = .upper), data = percentile_intervals, col = "blue")
+
+```
+
+```{r run_example_workflow}
+
+predictor_vars <- intersect(selected_predictors,all_vars)
+all_vars <- c(outcome_vars,predictor_vars)
+var_roles <- c(
+    rep("outcome",length(outcome_vars)),
+    rep("predictor",length(predictor_vars))
+)
+
+base_recipe <- 
+    recipe(train_data,vars=all_vars,roles=var_roles) |> 
+    step_dummy(all_nominal_predictors())
+norm_recipe <- 
     recipe(train_data,vars=all_vars,roles=var_roles) |> 
     step_normalize(all_numeric_predictors()) |> 
     step_dummy(all_nominal_predictors())
@@ -54,10 +125,9 @@ specs <-
     "SVM" = svm_linear(cost = tune(), margin = tune()) %>% set_engine("kernlab") %>% set_mode("classification")
   )
 
-folds <- vfold_cv(train_data,v = 10,repeats = 10)
+prediction_folds <- vfold_cv(train_data,v = 10,repeats = 10)
 
 set.seed(8241)
-doParallel::registerDoParallel()
 wf_set <- workflow_set(
     preproc = list(
         base = base_rec,
@@ -65,18 +135,17 @@ wf_set <- workflow_set(
         ),
     models = specs
 )
-res <- 
+prediction_results <- 
     workflow_map(
     wf_set,
     fn = 'tune_bayes',
-    resamples = folds,
+    resamples = prediction_folds,
     verbose = TRUE,
     metrics = metric_set(accuracy, sensitivity, specificity)
 )
 
 ```
 
-
 ```{r plot_example_workflow}
-autoplot(res)
+autoplot(prediction_results)
 ```
