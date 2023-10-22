@@ -69,7 +69,7 @@ lasso_resamples <- vfold_cv(train_data,v = 10,repeats = 10)
 
 ```
 
-```{r feature_selection}
+```{r feature_selection, fig.width=30,fig.height=30}
 lasso_model <- parsnip::logistic_reg(mode = "classification",engine = "glmnet",mixture = 1,penalty = 1)
 lasso_wf <- 
     workflow() |> 
@@ -93,14 +93,28 @@ selected_predictors <- setdiff(
                    percentile_intervals |> filter((.lower>0 & .upper>0) | (.lower<0 & .upper<0)) |> pull(term),
                    "Intercept"
                )
-ggplot(boot_coefs |> 
+
+length(selected_predictors)
+
+
+boot_filtered <- 
+    boot_coefs |> 
            filter(term %in% (
                selected_predictors
-           )), aes(estimate)) +
+           )) 
+percentile_intervals_filtered <- 
+    percentile_intervals |> 
+           filter(term %in% (
+               selected_predictors
+           )) 
+
+boot_filtered |> 
+  ggplot(aes(estimate)) +
   geom_histogram(bins = 30) +
-  facet_wrap( ~ term, scales = "free") +
-  geom_vline(aes(xintercept = .lower), data = percentile_intervals, col = "blue") +
-  geom_vline(aes(xintercept = .upper), data = percentile_intervals, col = "blue")
+  facet_wrap( ~ term,scales = "free") +
+  geom_vline(aes(xintercept = .lower), data = percentile_intervals_filtered, col = "indianred",linewidth=2) +
+  geom_vline(aes(xintercept = .upper), data = percentile_intervals_filtered, col = "indianred",linewidth=2) +
+  theme_minimal(base_size = 30)
 
 ```
 

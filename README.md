@@ -118,14 +118,31 @@ selected_predictors <- setdiff(
                    percentile_intervals |> filter((.lower>0 & .upper>0) | (.lower<0 & .upper<0)) |> pull(term),
                    "Intercept"
                )
-ggplot(boot_coefs |> 
+
+length(selected_predictors)
+```
+
+    [1] 51
+
+``` r
+boot_filtered <- 
+    boot_coefs |> 
            filter(term %in% (
                selected_predictors
-           )), aes(estimate)) +
+           )) 
+percentile_intervals_filtered <- 
+    percentile_intervals |> 
+           filter(term %in% (
+               selected_predictors
+           )) 
+
+boot_filtered |> 
+  ggplot(aes(estimate)) +
   geom_histogram(bins = 30) +
-  facet_wrap( ~ term, scales = "free") +
-  geom_vline(aes(xintercept = .lower), data = percentile_intervals, col = "blue") +
-  geom_vline(aes(xintercept = .upper), data = percentile_intervals, col = "blue")
+  facet_wrap( ~ term,scales = "free") +
+  geom_vline(aes(xintercept = .lower), data = percentile_intervals_filtered, col = "indianred",linewidth=2) +
+  geom_vline(aes(xintercept = .upper), data = percentile_intervals_filtered, col = "indianred",linewidth=2) +
+  theme_minimal(base_size = 30)
 ```
 
 ![](README_files/figure-commonmark/feature_selection-1.png)
